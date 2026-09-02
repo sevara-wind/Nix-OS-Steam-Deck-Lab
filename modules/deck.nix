@@ -27,10 +27,13 @@ in
       }
     ];
 
-    # ── Home Manager user ────────────────────────────────────────
+    # ── Home Manager: new user gets full config; sevara neutralised ─
     home-manager.users = lib.mkMerge [
       (lib.mkIf isCustomUser {
-        sevara = lib.mkForce {};
+        sevara = lib.mkForce {
+          home.stateVersion = "24.11";
+          imports = [];
+        };
       })
       {
         "${username}" = {

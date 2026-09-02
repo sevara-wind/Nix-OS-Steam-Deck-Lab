@@ -15,8 +15,7 @@
 
   # ── Embed our flake source into the ISO ────────────────────────
   environment.etc.nixos-installer = {
-    source    = installerSource;
-    recursive = true;
+    source = installerSource;
   };
 
   # ── Packages + installer script ────────────────────────────────

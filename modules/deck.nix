@@ -21,12 +21,11 @@ in
         } // lib.optionalAttrs (pwHash != "") {
           hashedPassword = pwHash;
         };
+        root.hashedPassword = lib.mkForce (
+          if pwHash != "" then pwHash else "!"
+        );
       }
     ];
-
-    users.users.root.hashedPassword = lib.mkForce (
-      if pwHash != "" then pwHash else null
-    );
 
     # ── Home Manager user ────────────────────────────────────────
     home-manager.users = lib.mkMerge [

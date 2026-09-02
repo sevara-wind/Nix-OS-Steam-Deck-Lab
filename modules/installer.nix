@@ -1,21 +1,9 @@
 { config, lib, pkgs, installerSource, ... }:
 
 {
-  # ── Live ISO boot ──────────────────────────────────────────────
-  boot.loader.systemd-boot.enable      = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # ── Networking ─────────────────────────────────────────────────
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
-
-  # ── Root access for live system ────────────────────────────────
-  users.users.root.initialPassword = "";
-
-  services.displayManager.autoLogin = {
-    enable = true;
-    user   = "root";
-  };
 
   services.openssh = {
     enable = true;
@@ -39,7 +27,8 @@
     parted
     btrfs-progs
     dosfstools
-    nixos-install-tools
+    nix
+    mkpasswd
     curl
     wget
     htop
@@ -130,7 +119,7 @@
 
       # ── Install ──
       echo ">>> Installing NixOS (flake#deck) ..."
-      HASH=$(nix-shell -p mkpasswd --run "mkpasswd -m SHA-512 ''$MY_PASS'")
+      HASH=$(mkpasswd -m SHA-512 "$MY_PASS")
       export MYDECK_USERNAME="$MY_USER"
       export MYDECK_PASSWORD_HASH="$HASH"
       export MYDECK_PANEL="$MY_PANEL"

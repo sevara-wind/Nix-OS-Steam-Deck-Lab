@@ -16,9 +16,13 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, deck, jovian, nix-crab, home-manager, disko, ... }@inputs:
+  outputs = { self, nixpkgs, deck, jovian, nix-crab, home-manager, disko, nixos-generators, ... }@inputs:
   let
     myModules = import ./modules;
 
@@ -50,6 +54,7 @@
           installerSource = ./.;
         };
         modules = [
+          nixos-generators.nixosModules.iso
           myModules.myDeck
           myModules.installer
         ];
@@ -64,7 +69,7 @@
     };
 
     packages.x86_64-linux = {
-      installer-iso = self.nixosConfigurations.installer.config.system.build.isoImage;
+      installer-iso = self.nixosConfigurations.installer.config.system.build.iso;
     };
   };
 }

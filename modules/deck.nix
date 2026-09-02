@@ -36,7 +36,7 @@ in
         "${username}" = {
           home.stateVersion = "24.11";
           imports = [
-            inputs.self.homeModules.noSteamidra
+            inputs.deck.homeModules.noSteamidra
           ];
           programs.nix-crab = {
             luatools.enable       = true;

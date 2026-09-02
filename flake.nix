@@ -69,7 +69,7 @@
     };
 
     packages.x86_64-linux = {
-      installer-iso = self.nixosConfigurations.installer.config.system.build.iso;
+      installer-iso = self.nixosConfigurations.installer.config.system.build.isoImage;
     };
   };
 }

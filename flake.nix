@@ -37,13 +37,14 @@
         nix-crab.nixosModules.default
         home-manager.nixosModules.home-manager
         myModules.myDeck
-        myModules.deck
-        "${deck}/configuration.nix"
+        ./configuration.nix
       ] ++ extraModules;
     };
 
   in {
     nixosModules = myModules;
+
+    homeModules.steamidra = deck.homeModules.steamidra;
 
     nixosConfigurations = {
 

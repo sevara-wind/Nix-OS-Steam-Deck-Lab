@@ -1,0 +1,109 @@
+name: Build Steam Deck NixOS Images
+
+on:
+  push:
+    tags: ["v*.*"]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "Primary username"
+        required: true
+        default: "deck"
+      password_hash:
+        description: "SHA-512 hash  (mkpasswd -m SHA-512 <password>)"
+        required: true
+      panel:
+        description: "Display panel"
+        required: true
+        type: choice
+        options: [lcd, oled]
+        default: "lcd"
+      timezone:
+        description: "Timezone"
+        required: false
+        default: "Europe/Moscow"
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # 1) ISO installer — minimal live system + setup-deck script
+  # ─────────────────────────────────────────────────────────────────
+  build-installer-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build ISO
+        run: |
+          nix build .#installer-iso --no-link --print-out-paths > result_path.txt
+          echo "ISO_PATH=$(cat result_path.txt)" >> $GITHUB_ENV
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p dist
+          cp -v "$ISO_PATH"/iso/*.iso dist/steamdeck-nixos-installer.iso
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/steamdeck-nixos-installer.iso
+          name: Installer ISO ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────────
+  # 2) Disk image — full deck config, dd-able, user baked in
+  # ─────────────────────────────────────────────────────────────────
+  build-disk-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Resolve inputs
+        run: |
+          echo "MYDECK_USERNAME=${{ github.event.inputs.username  || 'deck'           }}" >> $GITHUB_ENV
+          echo "MYDECK_PASSWORD_HASH=${{ github.event.inputs.password_hash || '' }}" >> $GITHUB_ENV
+          echo "MYDECK_PANEL=${{ github.event.inputs.panel     || 'lcd'            }}" >> $GITHUB_ENV
+          echo "MYDECK_TIMEZONE=${{ github.event.inputs.timezone || 'Europe/Moscow' }}" >> $GITHUB_ENV
+
+      - name: Build disk image
+        run: |
+          nix build \
+            .#nixosConfigurations.deck-disk.config.system.build.diskoImages \
+            --impure --no-link --print-out-paths > result_path.txt
+          echo "IMAGE_PATH=$(cat result_path.txt)" >> $GITHUB_ENV
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p dist
+          find "$IMAGE_PATH" -maxdepth 1 -name '*.img' -exec cp -v {} dist/ \;
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.img
+          name: Disk Image ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

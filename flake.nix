@@ -77,7 +77,7 @@
             efiInstallAsRemovable = true;
             configurationLimit = 10;
           };
-          boot.loader.efi.canTouchEfiVariables = false;
+          boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
         })
       ];
     };

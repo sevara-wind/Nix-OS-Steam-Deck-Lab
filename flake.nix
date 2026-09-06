@@ -12,17 +12,13 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, deck, jovian, nix-crab, home-manager, disko, nixos-generators, ... }@inputs:
+  outputs = { self, nixpkgs, deck, jovian, nix-crab, home-manager, nixos-generators, ... }@inputs:
   let
     myModules = import ./modules;
 
@@ -64,13 +60,28 @@
       deck = mkDeck [];
 
       deck-disk = mkDeck [
-        disko.nixosModules.disko
-        myModules.disk
+        nixos-generators.nixosModules.raw-efi
+        {
+          virtualisation.diskSize = "16G";
+        }
+        ({
+          boot.loader.limine.enable = lib.mkForce false;
+          boot.loader.systemd-boot.enable = lib.mkForce false;
+          boot.loader.grub = {
+            enable = true;
+            device = "nodev";
+            efiSupport = true;
+            efiInstallAsRemovable = true;
+            configurationLimit = 10;
+          };
+          boot.loader.efi.canTouchEfiVariables = false;
+        })
       ];
     };
 
     packages.x86_64-linux = {
       installer-iso = self.nixosConfigurations.installer.config.system.build.isoImage;
+      deck-disk = self.nixosConfigurations.deck-disk.config.system.build.raw;
     };
   };
 }

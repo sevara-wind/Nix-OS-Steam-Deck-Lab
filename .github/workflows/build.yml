@@ -92,7 +92,7 @@ jobs:
       - name: Build disk image
         run: |
           nix build \
-            .#nixosConfigurations.deck-disk.config.system.build.diskoImages \
+            .#deck-disk \
             --impure --no-link --print-out-paths > result_path.txt
           echo "IMAGE_PATH=$(cat result_path.txt)" >> $GITHUB_ENV
 

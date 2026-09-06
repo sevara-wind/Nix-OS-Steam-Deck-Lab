@@ -13,6 +13,17 @@
     };
   };
 
+  # ── Console: no login prompt, straight into the installer ──────
+  services.getty.autologinUser = "root";
+
+  # Auto-start the interactive installer on the auto-logged-in root shell
+  programs.bash.interactiveShellInit = ''
+    if [ -t 0 ] && [ "$USER" = "root" ] && [ -z "$SETUP_DECK_RAN" ]; then
+      export SETUP_DECK_RAN=1
+      setup-deck || true
+    fi
+  '';
+
   # ── Embed our flake source into the ISO ────────────────────────
   environment.etc.nixos-installer = {
     source = installerSource;
@@ -27,6 +38,7 @@
     btrfs-progs
     dosfstools
     nix
+    nixos-install-tools
     mkpasswd
     curl
     wget

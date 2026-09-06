@@ -62,7 +62,7 @@
       deck-disk = mkDeck [
         nixos-generators.nixosModules.raw-efi
         {
-          virtualisation.diskSize = "16G";
+          virtualisation.diskSize = 16 * 1024;
         }
         ({
           lib,

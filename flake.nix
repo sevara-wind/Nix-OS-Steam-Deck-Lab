@@ -65,6 +65,9 @@
           virtualisation.diskSize = "16G";
         }
         ({
+          lib,
+          ...
+        }: {
           boot.loader.limine.enable = lib.mkForce false;
           boot.loader.systemd-boot.enable = lib.mkForce false;
           boot.loader.grub = {

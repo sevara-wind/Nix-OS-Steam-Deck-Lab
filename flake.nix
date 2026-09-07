@@ -34,6 +34,13 @@
         home-manager.nixosModules.home-manager
         myModules.myDeck
         ./configuration.nix
+        # The physical installer runs `nixos-generate-config --root /mnt`
+        # before `nixos-install`, so the generated file lives next to this
+        # flake on the target. Import it when present so the btrfs subvolume
+        # layout / ESP mounts are applied to the installed system. It is
+        # absent during CI image builds (raw-efi provides its own fs layout).
+      ] ++ nixpkgs.lib.optionals (builtins.pathExists ./hardware-configuration.nix) [
+        ./hardware-configuration.nix
       ] ++ extraModules;
     };
 

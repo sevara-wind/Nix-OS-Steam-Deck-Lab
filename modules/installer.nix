@@ -120,13 +120,18 @@
       rm -rf /mnt/etc/nixos
       mkdir -p /mnt/etc/nixos
       cp -rL /etc/nixos-installer/* /mnt/etc/nixos/
-      git -C /mnt/etc/nixos init -b main 2>/dev/null || true
-      git -C /mnt/etc/nixos add -A 2>/dev/null || true
-      git -C /mnt/etc/nixos commit -m "installer" 2>/dev/null || true
 
       # ── Generate hardware config for target ──
       echo ">>> Generating hardware-configuration.nix ..."
       nixos-generate-config --root /mnt
+
+      # ── Commit the flake ──
+      # Flakes only read committed files, so hardware-configuration.nix must
+      # be included in the commit below or it won't be part of the evaluation.
+      mkdir -p /mnt/etc/nixos
+      git -C /mnt/etc/nixos init -b main 2>/dev/null || true
+      git -C /mnt/etc/nixos add -A 2>/dev/null || true
+      git -C /mnt/etc/nixos commit -m "installer" 2>/dev/null || true
 
       # ── Install ──
       echo ">>> Installing NixOS (flake#deck) ..."
